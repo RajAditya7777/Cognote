@@ -39,8 +39,8 @@ export async function POST(req) {
     // Generate token
     const token = generateToken(user);
 
-    // Return user data and token
-    return NextResponse.json({
+    // Create response with user data and token
+    const response = NextResponse.json({
       user: {
         id: user.id,
         email: user.email,
@@ -48,6 +48,16 @@ export async function POST(req) {
       },
       token
     });
+
+    // Set HTTP-only cookie for server-side authentication
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7 // 7 days
+    });
+
+    return response;
   } catch (error) {
     console.error('Signup error:', error);
     return NextResponse.json(

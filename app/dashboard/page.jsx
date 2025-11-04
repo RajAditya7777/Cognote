@@ -29,9 +29,21 @@ export default function Dashboard() {
     }
   }, [router]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      // Call logout API to clear server-side cookie
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+
+    // Clear client-side storage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    
+    // Redirect to home
     router.push('/');
   };
 
