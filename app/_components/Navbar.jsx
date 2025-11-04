@@ -2,7 +2,6 @@
 
 import CardNav from "@/components/CardNav";
 
-
 const Navbar = () => {
   const items = [
     {
