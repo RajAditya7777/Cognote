@@ -5,33 +5,44 @@ import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  
+  // Initialize state from localStorage directly
+  const [user, setUser] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const userData = localStorage.getItem('user');
+        return userData ? JSON.parse(userData) : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+  
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
+      // If we have both token and userData, we're not loading
+      return !(token && userData);
+    }
+    return true;
+  });
 
   useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+    // Only handle redirection, no state setting
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
 
-    if (!token || !userData) {
-      router.push('/auth');
-      return;
-    }
-
-    try {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error parsing user data:', error);
-      router.push('/auth');
-      return;
+      if (!token || !userData) {
+        router.push('/auth');
+      }
     }
   }, [router]);
 
   const handleLogout = async () => {
     try {
-      // Call logout API to clear server-side cookie
       await fetch('/api/auth/logout', {
         method: 'POST',
       });
@@ -39,11 +50,8 @@ export default function Dashboard() {
       console.error('Logout error:', error);
     }
 
-    // Clear client-side storage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    
-    // Redirect to home
     router.push('/');
   };
 
