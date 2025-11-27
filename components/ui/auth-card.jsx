@@ -38,8 +38,8 @@ const AuthCard = ({ mode = 'login' }) => {
     }
 
     try {
-      const endpoint = `/api/auth/${authMode === 'login' ? 'login' : 'signup'}`;
-      const response = await fetch(endpoint, {
+      const endpoint = authMode === 'login' ? 'login' : 'register';
+      const response = await fetch(`http://localhost:4000/api/auth/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,6 +52,8 @@ const AuthCard = ({ mode = 'login' }) => {
       });
 
       const data = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Authentication failed');
@@ -61,10 +63,13 @@ const AuthCard = ({ mode = 'login' }) => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
+      console.log('Token and user saved to localStorage');
+
       // Redirect to dashboard
       router.push('/dashboard');
       router.refresh();
     } catch (err) {
+      console.error('Auth error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -77,13 +82,13 @@ const AuthCard = ({ mode = 'login' }) => {
         <h2 className="text-3xl font-semibold text-white mb-6">
           {authMode === 'login' ? 'Welcome Back' : 'Create Account'}
         </h2>
-        
+
         {error && (
           <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm">
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-white/70 mb-1">Email</label>
@@ -149,7 +154,7 @@ const AuthCard = ({ mode = 'login' }) => {
             </div>
           )}
 
-          <Button 
+          <Button
             type="submit"
             className="w-full bg-white text-black hover:bg-white/90 py-6 rounded-xl font-medium text-lg"
             disabled={loading}

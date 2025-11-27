@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
   const router = useRouter();
-  
+
   // Initialize state from localStorage directly
   const [user, setUser] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -18,7 +18,7 @@ export default function Dashboard() {
     }
     return null;
   });
-  
+
   const [loading, setLoading] = useState(() => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
@@ -41,15 +41,8 @@ export default function Dashboard() {
     }
   }, [router]);
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-
+  const handleLogout = () => {
+    // Clear local storage (JWT is stateless, no server-side logout needed)
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     router.push('/');

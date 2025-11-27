@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Used for direct connection to Neon
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  name      String?
+  files     File[]    @relation("UserFiles")
+  notes     Note[]    @relation("UserNotes")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model File {
+  id            String    @id @default(cuid())
+  filename      String
+  filepath      String
+  extractedText String?   @db.Text
+  userId        String
+  user          User      @relation("UserFiles", fields: [userId], references: [id], onDelete: Cascade)
+  notes         Note[]    @relation("FileNotes")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Note {
+  id        String    @id @default(cuid())
+  content   String    @db.Text
+  fileId    String?
+  file      File?     @relation("FileNotes", fields: [fileId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation("UserNotes", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([fileId])
+}
+
+// Future AI-generated content models (commented out for now)
+// Uncomment and customize when implementing AI features
+
+// model Summary {
+//   id        String    @id @default(cuid())
+//   content   String    @db.Text
+//   fileId    String
+//   file      File      @relation("FileSummaries", fields: [fileId], references: [id], onDelete: Cascade)
+//   userId    String
+//   user      User      @relation("UserSummaries", fields: [userId], references: [id], onDelete: Cascade)
+//   createdAt DateTime  @default(now())
+//   
+//   @@index([userId])
+//   @@index([fileId])
+// }
+
+// model Flashcard {
+//   id        String    @id @default(cuid())
+//   question  String    @db.Text
+//   answer    String    @db.Text
+//   fileId    String
+//   file      File      @relation("FileFlashcards", fields: [fileId], references: [id], onDelete: Cascade)
+//   userId    String
+//   user      User      @relation("UserFlashcards", fields: [userId], references: [id], onDelete: Cascade)
+//   createdAt DateTime  @default(now())
+//   
+//   @@index([userId])
+//   @@index([fileId])
+// }
+
+// model Quiz {
+//   id        String    @id @default(cuid())
+//   question  String    @db.Text
+//   options   String[]  // Array of options
+//   answer    String
+//   fileId    String
+//   file      File      @relation("FileQuizzes", fields: [fileId], references: [id], onDelete: Cascade)
+//   userId    String
+//   user      User      @relation("UserQuizzes", fields: [userId], references: [id], onDelete: Cascade)
+//   createdAt DateTime  @default(now())
+//   
+//   @@index([userId])
+//   @@index([fileId])
+// }

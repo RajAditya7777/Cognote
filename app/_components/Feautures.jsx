@@ -3,7 +3,7 @@ import React from 'react'
 
 const Feautures = () => {
     return (
-        <div>
+        <div className='mt-20 mb-20'>
             <MagicBento
                 textAutoHide={true}
                 enableStars={true}
