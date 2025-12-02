@@ -157,13 +157,11 @@ const CardNav = ({
             tabIndex={0}
             style={{ color: menuColor || '#000' }}>
             <div
-              className={`hamburger-line w-[30px] h-0.5 bg-current transition-[transform,opacity,margin] duration-300 ease-linear origin-[50%_50%] ${
-                isHamburgerOpen ? 'translate-y-1 rotate-45' : ''
-              } group-hover:opacity-75`} />
+              className={`hamburger-line w-[30px] h-0.5 bg-current transition-[transform,opacity,margin] duration-300 ease-linear origin-[50%_50%] ${isHamburgerOpen ? 'translate-y-1 rotate-45' : ''
+                } group-hover:opacity-75`} />
             <div
-              className={`hamburger-line w-[30px] h-0.5 bg-current transition-[transform,opacity,margin] duration-300 ease-linear origin-[50%_50%] ${
-                isHamburgerOpen ? '-translate-y-1 -rotate-45' : ''
-              } group-hover:opacity-75`} />
+              className={`hamburger-line w-[30px] h-0.5 bg-current transition-[transform,opacity,margin] duration-300 ease-linear origin-[50%_50%] ${isHamburgerOpen ? '-translate-y-1 -rotate-45' : ''
+                } group-hover:opacity-75`} />
           </div>
 
           <div
@@ -173,7 +171,7 @@ const CardNav = ({
 
           <button
             type="button"
-            onClick={() => router.push('/auth')}
+            onClick={() => router.push('/notebooks')}
             className="card-nav-cta-button hidden md:inline-flex border-0 rounded-[calc(0.75rem-0.2rem)] px-4 items-center h-full font-medium cursor-pointer transition-colors duration-300"
             style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}>
             Get Started
@@ -181,9 +179,8 @@ const CardNav = ({
         </div>
 
         <div
-          className={`card-nav-content absolute left-0 right-0 top-[60px] bottom-0 p-2 flex flex-col items-stretch gap-2 justify-start z-1 ${
-            isExpanded ? 'visible pointer-events-auto' : 'invisible pointer-events-none'
-          } md:flex-row md:items-end md:gap-3`}
+          className={`card-nav-content absolute left-0 right-0 top-[60px] bottom-0 p-2 flex flex-col items-stretch gap-2 justify-start z-1 ${isExpanded ? 'visible pointer-events-auto' : 'invisible pointer-events-none'
+            } md:flex-row md:items-end md:gap-3`}
           aria-hidden={!isExpanded}>
           {(items || []).slice(0, 3).map((item, idx) => (
             <div

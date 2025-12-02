@@ -63,7 +63,10 @@ const AuthCard = ({ mode = 'login' }) => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      console.log('Token and user saved to localStorage');
+      // Set cookie for middleware
+      document.cookie = `token=${data.token}; path=/; max-age=86400; SameSite=Strict`;
+
+      console.log('Token and user saved to localStorage and cookies');
 
       // Redirect to dashboard
       router.push('/dashboard');

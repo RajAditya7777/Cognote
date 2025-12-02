@@ -6,17 +6,17 @@ const Navbar = () => {
   const items = [
     {
       label: "About",
-      bgColor: "#0D0716",
-      textColor: "#fff",
+      bgColor: "#000000",
+      textColor: "#ffffff",
       links: [
         { label: "Company", ariaLabel: "About Company" },
         { label: "Careers", ariaLabel: "About Careers" }
       ]
     },
     {
-      label: "Projects", 
-      bgColor: "#170D27",
-      textColor: "#fff",
+      label: "Projects",
+      bgColor: "#0a0a0a",
+      textColor: "#ffffff",
       links: [
         { label: "Featured", ariaLabel: "Featured Projects" },
         { label: "Case Studies", ariaLabel: "Project Case Studies" }
@@ -24,8 +24,8 @@ const Navbar = () => {
     },
     {
       label: "Contact",
-      bgColor: "#271E37", 
-      textColor: "#fff",
+      bgColor: "#171717",
+      textColor: "#ffffff",
       links: [
         { label: "Email", ariaLabel: "Email us" },
         { label: "Twitter", ariaLabel: "Twitter" },
