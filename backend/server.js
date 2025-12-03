@@ -7,7 +7,8 @@ const path = require('path');
 const loginRoute = require('./api/auth/login');
 const registerRoute = require('./api/auth/register');
 const uploadRoute = require('./api/pdf/upload');
-const aiPlaceholders = require('./api/ai/placeholders');
+const aiRoutes = require('./api/ai/gemini');
+const userDataRoute = require('./api/user/data');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -38,13 +39,17 @@ app.post('/api/auth/register', registerRoute);
 app.post('/api/auth/login', loginRoute);
 
 // PDF routes
+// PDF routes
 app.post('/api/pdf/upload', uploadRoute);
 
-// AI placeholder routes (for future implementation)
-app.post('/api/ai/summarize', aiPlaceholders.summarize);
-app.post('/api/ai/flashcards', aiPlaceholders.flashcards);
-app.post('/api/ai/quiz', aiPlaceholders.quiz);
-app.post('/api/ai/chat', aiPlaceholders.chat);
+// User Data routes
+app.post('/api/user/data', userDataRoute);
+
+// AI routes
+app.post('/api/ai/summarize', aiRoutes.summarize);
+app.post('/api/ai/flashcards', aiRoutes.flashcards);
+app.post('/api/ai/quiz', aiRoutes.quiz);
+app.post('/api/ai/chat', aiRoutes.chat);
 
 // 404 handler
 app.use((req, res) => {

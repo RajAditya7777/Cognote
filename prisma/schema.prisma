@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -20,6 +21,8 @@ model User {
   password  String
   name      String?
   todos     Todo[]    @relation("UserTodos")
+  files     File[]
+  notes     Note[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -35,4 +38,69 @@ model Todo {
   updatedAt   DateTime  @updatedAt
 
   @@index([userId])
+}
+
+model File {
+  id            String    @id @default(cuid())
+  filename      String
+  filepath      String
+  extractedText String    @db.Text
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  notes         Note[]
+  summary       Summary?
+  flashcards    Flashcard[]
+  quiz          Quiz[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  fileId    String
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([fileId])
+  @@index([userId])
+}
+
+model Summary {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  fileId    String   @unique
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Flashcard {
+  id        String   @id @default(cuid())
+  front     String   @db.Text
+  back      String   @db.Text
+  fileId    String
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([fileId])
+}
+
+model Quiz {
+  id        String   @id @default(cuid())
+  question  String   @db.Text
+  options   String[]
+  answer    String   @db.Text
+  fileId    String
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([fileId])
 }

@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -30,6 +31,9 @@ model File {
   userId        String
   user          User      @relation("UserFiles", fields: [userId], references: [id], onDelete: Cascade)
   notes         Note[]    @relation("FileNotes")
+  summary       Summary?
+  flashcards    Flashcard[]
+  quiz          Quiz[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -50,47 +54,36 @@ model Note {
   @@index([fileId])
 }
 
-// Future AI-generated content models (commented out for now)
-// Uncomment and customize when implementing AI features
+model Summary {
+  id        String    @id @default(cuid())
+  content   String    @db.Text
+  fileId    String    @unique
+  file      File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
 
-// model Summary {
-//   id        String    @id @default(cuid())
-//   content   String    @db.Text
-//   fileId    String
-//   file      File      @relation("FileSummaries", fields: [fileId], references: [id], onDelete: Cascade)
-//   userId    String
-//   user      User      @relation("UserSummaries", fields: [userId], references: [id], onDelete: Cascade)
-//   createdAt DateTime  @default(now())
-//   
-//   @@index([userId])
-//   @@index([fileId])
-// }
+model Flashcard {
+  id        String    @id @default(cuid())
+  front     String    @db.Text
+  back      String    @db.Text
+  fileId    String
+  file      File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-// model Flashcard {
-//   id        String    @id @default(cuid())
-//   question  String    @db.Text
-//   answer    String    @db.Text
-//   fileId    String
-//   file      File      @relation("FileFlashcards", fields: [fileId], references: [id], onDelete: Cascade)
-//   userId    String
-//   user      User      @relation("UserFlashcards", fields: [userId], references: [id], onDelete: Cascade)
-//   createdAt DateTime  @default(now())
-//   
-//   @@index([userId])
-//   @@index([fileId])
-// }
+  @@index([fileId])
+}
 
-// model Quiz {
-//   id        String    @id @default(cuid())
-//   question  String    @db.Text
-//   options   String[]  // Array of options
-//   answer    String
-//   fileId    String
-//   file      File      @relation("FileQuizzes", fields: [fileId], references: [id], onDelete: Cascade)
-//   userId    String
-//   user      User      @relation("UserQuizzes", fields: [userId], references: [id], onDelete: Cascade)
-//   createdAt DateTime  @default(now())
-//   
-//   @@index([userId])
-//   @@index([fileId])
-// }
+model Quiz {
+  id        String    @id @default(cuid())
+  question  String    @db.Text
+  options   String[]
+  answer    String    @db.Text
+  fileId    String
+  file      File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([fileId])
+}

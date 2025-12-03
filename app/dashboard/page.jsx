@@ -11,6 +11,25 @@ export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [files, setFiles] = useState([]);
+  const [notes, setNotes] = useState([]);
+
+  const fetchUserData = async (userId) => {
+    try {
+      const res = await fetch('http://localhost:4000/api/user/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setFiles(data.files || []);
+        setNotes(data.notes || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user data", error);
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -21,7 +40,9 @@ export default function Dashboard() {
         router.push('/auth');
       } else {
         try {
-          setUser(JSON.parse(userData));
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          fetchUserData(parsedUser.id);
         } catch (e) {
           console.error("Error parsing user data", e);
         }
@@ -42,8 +63,8 @@ export default function Dashboard() {
     <div className="h-screen flex flex-col bg-black overflow-hidden font-sans">
       <DashboardHeader user={user} />
       <div className="flex-1 flex overflow-hidden">
-        <SidebarLeft />
-        <MainContent />
+        <SidebarLeft files={files} onUploadSuccess={() => user && fetchUserData(user.id)} userId={user?.id} />
+        <MainContent files={files} onUploadSuccess={() => user && fetchUserData(user.id)} userId={user?.id} />
         <SidebarRight />
       </div>
     </div>
