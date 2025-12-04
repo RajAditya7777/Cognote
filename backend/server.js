@@ -9,6 +9,8 @@ const registerRoute = require('./api/auth/register');
 const uploadRoute = require('./api/pdf/upload');
 const aiRoutes = require('./api/ai/gemini');
 const userDataRoute = require('./api/user/data');
+const deleteRoutes = require('./api/delete');
+const historyRoute = require('./api/chat/history');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -43,13 +45,20 @@ app.post('/api/auth/login', loginRoute);
 app.post('/api/pdf/upload', uploadRoute);
 
 // User Data routes
+// User Data routes
 app.post('/api/user/data', userDataRoute);
+app.use('/api/user/settings', require('./api/user/settings'));
+app.use('/api/notebooks', require('./api/notebooks'));
 
 // AI routes
 app.post('/api/ai/summarize', aiRoutes.summarize);
 app.post('/api/ai/flashcards', aiRoutes.flashcards);
 app.post('/api/ai/quiz', aiRoutes.quiz);
 app.post('/api/ai/chat', aiRoutes.chat);
+app.get('/api/chat/history', historyRoute.getHistory);
+
+// Delete routes
+app.use('/api/delete', deleteRoutes); // Added usage for deleteRoutes
 
 // 404 handler
 app.use((req, res) => {

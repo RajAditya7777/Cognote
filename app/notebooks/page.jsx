@@ -1,17 +1,85 @@
 'use client';
-import React from 'react';
+'use client'
+
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Book, MoreVertical, Search } from 'lucide-react';
+import { Plus, Search, FileText, Clock } from 'lucide-react';
 import { FadeIn } from '@/components/ui/fade-in';
 
 export default function NotebooksPage() {
     const router = useRouter();
+    const [notebooks, setNotebooks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [user, setUser] = useState(null);
 
-    const notebooks = [
-        { id: 1, title: 'Introduction to Cognote', date: 'Edited 2 hours ago' },
-        { id: 2, title: 'Research Project 2024', date: 'Edited yesterday' },
-        { id: 3, title: 'Meeting Notes', date: 'Edited 3 days ago' },
-    ];
+    useEffect(() => {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const parsedUser = JSON.parse(userData);
+            setUser(parsedUser);
+            fetchNotebooks(parsedUser.id);
+        } else {
+            router.push('/auth');
+        }
+    }, [router]);
+
+    const fetchNotebooks = async (userId) => {
+        try {
+            const res = await fetch(`http://localhost:4000/api/notebooks/${userId}`);
+            if (res.ok) {
+                const data = await res.json();
+                setNotebooks(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch notebooks:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCreateNotebook = async () => {
+        if (!user) return;
+        try {
+            const res = await fetch('http://localhost:4000/api/notebooks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, title: 'Untitled Notebook' })
+            });
+            if (res.ok) {
+                const newNotebook = await res.json();
+                setNotebooks([newNotebook, ...notebooks]);
+            }
+        } catch (error) {
+            console.error('Failed to create notebook:', error);
+        }
+    };
+
+    const filteredNotebooks = notebooks.filter(notebook =>
+        notebook.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffHours < 1) return 'Just now';
+        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        return date.toLocaleDateString();
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="text-white text-xl">Loading...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-black text-white">
@@ -34,6 +102,8 @@ export default function NotebooksPage() {
                             <input
                                 type="text"
                                 placeholder="Search notebooks..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                                 className="bg-white/5 border border-white/10 rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-white/20 w-64 transition-colors"
                             />
                         </div>
@@ -44,7 +114,7 @@ export default function NotebooksPage() {
                     {/* New Notebook Card */}
                     <FadeIn delay={0.1}>
                         <button
-                            onClick={() => router.push('/dashboard')}
+                            onClick={handleCreateNotebook}
                             className="group aspect-[4/3] rounded-3xl border-2 border-dashed border-white/10 hover:border-blue-500/50 hover:bg-blue-500/5 flex flex-col items-center justify-center gap-4 transition-all duration-300 w-full"
                         >
                             <div className="w-12 h-12 rounded-full bg-white/5 group-hover:bg-blue-500/20 flex items-center justify-center transition-colors">
@@ -55,23 +125,30 @@ export default function NotebooksPage() {
                     </FadeIn>
 
                     {/* Existing Notebooks */}
-                    {notebooks.map((notebook, index) => (
+                    {filteredNotebooks.map((notebook, index) => (
                         <FadeIn key={notebook.id} delay={0.1 + (index + 1) * 0.1}>
                             <div
+                                onClick={() => router.push('/dashboard')}
                                 className="group aspect-[4/3] rounded-3xl bg-white/5 border border-white/10 hover:border-white/20 p-6 flex flex-col justify-between relative cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-blue-900/10"
                             >
                                 <div className="flex justify-between items-start">
                                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
-                                        <Book className="w-5 h-5 text-blue-400" />
+                                        <FileText className="w-5 h-5 text-blue-400" />
                                     </div>
-                                    <button className="p-1 hover:bg-white/10 rounded-full transition-colors opacity-0 group-hover:opacity-100">
-                                        <MoreVertical className="w-5 h-5 text-gray-400" />
-                                    </button>
                                 </div>
 
                                 <div>
                                     <h3 className="font-medium text-lg mb-1 group-hover:text-blue-400 transition-colors">{notebook.title}</h3>
-                                    <p className="text-sm text-gray-500">{notebook.date}</p>
+                                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                                        <Clock className="w-3 h-3" />
+                                        <p>{formatDate(notebook.updatedAt)}</p>
+                                        {notebook._count && notebook._count.files > 0 && (
+                                            <>
+                                                <span>•</span>
+                                                <p>{notebook._count.files} file{notebook._count.files !== 1 ? 's' : ''}</p>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </FadeIn>

@@ -19,8 +19,25 @@ model User {
   name      String?
   files     File[]    @relation("UserFiles")
   notes     Note[]    @relation("UserNotes")
+  messages  Message[]
+  username  String?   @unique
+  customPrompt String?   @db.Text
+  notebooks Notebook[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+model Notebook {
+  id           String   @id @default(cuid())
+  title        String
+  customPrompt String?  @db.Text
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  files        File[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model File {
@@ -30,14 +47,18 @@ model File {
   extractedText String?   @db.Text
   userId        String
   user          User      @relation("UserFiles", fields: [userId], references: [id], onDelete: Cascade)
+  notebookId    String?
+  notebook      Notebook? @relation(fields: [notebookId], references: [id], onDelete: SetNull)
   notes         Note[]    @relation("FileNotes")
   summary       Summary?
   flashcards    Flashcard[]
   quiz          Quiz[]
+  messages      Message[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   @@index([userId])
+  @@index([notebookId])
 }
 
 model Note {
@@ -57,6 +78,7 @@ model Note {
 model Summary {
   id        String    @id @default(cuid())
   content   String    @db.Text
+  name      String?
   fileId    String    @unique
   file      File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
@@ -67,6 +89,7 @@ model Flashcard {
   id        String    @id @default(cuid())
   front     String    @db.Text
   back      String    @db.Text
+  name      String?
   fileId    String
   file      File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
@@ -76,14 +99,31 @@ model Flashcard {
 }
 
 model Quiz {
-  id        String    @id @default(cuid())
-  question  String    @db.Text
-  options   String[]
-  answer    String    @db.Text
-  fileId    String
-  file      File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  question     String    @db.Text
+  options      String[]
+  answer       String    @db.Text
+  explanations Json?     // Stores the explanation object
+  hint         String?   @db.Text
+  name         String?
+  fileId       String
+  file         File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
+  @@index([fileId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  role      String   // 'user' or 'assistant'
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileId    String?
+  file      File?    @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
   @@index([fileId])
 }

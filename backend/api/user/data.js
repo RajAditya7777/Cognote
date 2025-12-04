@@ -2,20 +2,30 @@ const { prisma } = require('../../prismaClient');
 
 async function getUserData(req, res) {
     try {
-        const { userId } = req.body; // In a real app, this would come from the auth middleware (req.user.id)
+        const { userId, notebookId } = req.body; // In a real app, this would come from the auth middleware (req.user.id)
 
         if (!userId) {
             return res.status(400).json({ error: 'User ID is required' });
         }
 
+        // Build where clause for files
+        const fileWhere = { userId };
+        if (notebookId) {
+            fileWhere.notebookId = notebookId;
+        }
+
         const files = await prisma.file.findMany({
-            where: { userId },
+            where: fileWhere,
             orderBy: { createdAt: 'desc' },
             select: {
                 id: true,
                 filename: true,
                 createdAt: true,
-                // Don't fetch extractedText for the list view to save bandwidth
+                extractedText: true, // Fetch extracted text
+                notebookId: true,    // Include notebook association
+                quiz: true,       // Fetch full quiz data
+                flashcards: true, // Fetch full flashcards data
+                summary: true     // Fetch full summary data
             }
         });
 

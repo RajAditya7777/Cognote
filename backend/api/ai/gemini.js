@@ -7,15 +7,22 @@ const { prisma } = require('../../prismaClient');
  */
 async function summarize(req, res) {
     try {
-        const { text, fileId } = req.body;
+        const { text, fileId, fileIds, userId } = req.body;
 
-        if (!text && !fileId) {
-            return res.status(400).json({ error: 'Text or fileId is required' });
+        if (!text && !fileId && (!fileIds || fileIds.length === 0)) {
+            return res.status(400).json({ error: 'Text, fileId, or fileIds is required' });
         }
 
-        let contentToSummarize = text;
+        let contentToSummarize = text || "";
 
-        if (fileId) {
+        if (fileIds && fileIds.length > 0) {
+            const notes = await prisma.note.findMany({
+                where: { fileId: { in: fileIds } }
+            });
+            if (notes.length > 0) {
+                contentToSummarize += "\n\n" + notes.map(n => n.content).join("\n\n");
+            }
+        } else if (fileId) {
             const note = await prisma.note.findFirst({
                 where: { fileId: fileId }
             });
@@ -26,7 +33,13 @@ async function summarize(req, res) {
             }
         }
 
-        const prompt = `Summarize the following text concisely, capturing the main points:\n\n${contentToSummarize}`;
+        let customInstruction = "";
+        if (userId) {
+            const user = await prisma.user.findUnique({ where: { id: userId }, select: { customPrompt: true } });
+            if (user?.customPrompt) customInstruction = `\n\nUser Custom Instruction: ${user.customPrompt}`;
+        }
+
+        const prompt = `Summarize the following text concisely, capturing the main points.${customInstruction}\n\n${contentToSummarize}`;
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const summaryText = response.text();
@@ -56,16 +69,30 @@ async function summarize(req, res) {
  */
 async function flashcards(req, res) {
     try {
-        const { text, fileId, count = 5 } = req.body;
+        const { text, fileId, fileIds, userId, count = 5 } = req.body;
 
-        let contentToProcess = text;
-        if (fileId) {
+        let contentToProcess = text || "";
+
+        if (fileIds && fileIds.length > 0) {
+            const notes = await prisma.note.findMany({
+                where: { fileId: { in: fileIds } }
+            });
+            if (notes.length > 0) {
+                contentToProcess += "\n\n" + notes.map(n => n.content).join("\n\n");
+            }
+        } else if (fileId) {
             const note = await prisma.note.findFirst({ where: { fileId } });
             if (!note) return res.status(404).json({ error: 'Note not found' });
             contentToProcess = note.content;
         }
 
-        const prompt = `Generate ${count} flashcards from the following text. Return a JSON array of objects with "front" and "back" keys. Do not include markdown formatting like \`\`\`json.\n\nText:\n${contentToProcess}`;
+        let customInstruction = "";
+        if (userId) {
+            const user = await prisma.user.findUnique({ where: { id: userId }, select: { customPrompt: true } });
+            if (user?.customPrompt) customInstruction = `\n\nUser Custom Instruction: ${user.customPrompt}`;
+        }
+
+        const prompt = `Generate ${count} flashcards from the following text. Return a JSON array of objects with "front" and "back" keys. Do not include markdown formatting like \`\`\`json.${customInstruction}\n\nText:\n${contentToProcess}`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -103,40 +130,91 @@ async function flashcards(req, res) {
  */
 async function quiz(req, res) {
     try {
-        const { text, fileId, count = 5 } = req.body;
+        const { text, fileId, fileIds, userId, count = 5 } = req.body;
 
-        let contentToProcess = text;
-        if (fileId) {
+        let contentToProcess = text || "";
+
+        if (fileIds && fileIds.length > 0) {
+            const notes = await prisma.note.findMany({
+                where: { fileId: { in: fileIds } }
+            });
+            if (notes.length > 0) {
+                contentToProcess += "\n\n" + notes.map(n => n.content).join("\n\n");
+            }
+        } else if (fileId) {
             const note = await prisma.note.findFirst({ where: { fileId } });
             if (!note) return res.status(404).json({ error: 'Note not found' });
             contentToProcess = note.content;
         }
 
-        const prompt = `Generate a quiz with ${count} multiple-choice questions from the following text. Return a JSON array of objects with "question", "options" (array of strings), and "answer" (string, matching one of the options) keys. Do not include markdown formatting.\n\nText:\n${contentToProcess}`;
+        let customInstruction = "";
+        if (userId) {
+            const user = await prisma.user.findUnique({ where: { id: userId }, select: { customPrompt: true } });
+            if (user?.customPrompt) customInstruction = `\n\nUser Custom Instruction: ${user.customPrompt}`;
+        }
+
+        const prompt = `Generate a quiz with ${count} multiple-choice questions from the following text. 
+        Return a JSON array of objects with the following structure:
+        {
+            "question": "The question text",
+            "options": ["Option A", "Option B", "Option C", "Option D"],
+            "answer": "The correct option text (must match one of the options exactly)",
+            "explanations": {
+                "0": "Explanation for why Option A is correct/incorrect",
+                "1": "Explanation for why Option B is correct/incorrect",
+                "2": "Explanation for why Option C is correct/incorrect",
+                "3": "Explanation for why Option D is correct/incorrect"
+            },
+            "hint": "A helpful hint"
+        }
+        Do not include markdown formatting.
+        ${customInstruction}
+        
+        Text:
+        ${contentToProcess}`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
         let textResponse = response.text();
+        console.log("Raw Gemini Response:", textResponse); // Log raw response for debugging
 
         textResponse = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-        const quizData = JSON.parse(textResponse);
+
+        let quizData;
+        try {
+            quizData = JSON.parse(textResponse);
+        } catch (parseError) {
+            console.error("JSON Parse Error:", parseError);
+            console.error("Failed Text:", textResponse);
+            // Attempt to recover or return a partial error
+            return res.status(500).json({ error: 'Failed to parse AI response', details: parseError.message });
+        }
 
         if (fileId && Array.isArray(quizData)) {
-            await prisma.quiz.deleteMany({ where: { fileId } });
-            await prisma.quiz.createMany({
-                data: quizData.map(q => ({
-                    question: q.question,
-                    options: q.options,
-                    answer: q.answer,
-                    fileId
-                }))
-            });
+            console.log(`Saving quiz for file ${fileId} with ${quizData.length} questions`);
+            try {
+                await prisma.quiz.deleteMany({ where: { fileId } });
+                await prisma.quiz.createMany({
+                    data: quizData.map(q => ({
+                        question: q.question,
+                        options: q.options,
+                        answer: q.answer,
+                        explanations: q.explanations || {}, // Save explanations
+                        hint: q.hint || "",             // Save hint
+                        fileId
+                    }))
+                });
+                console.log("Quiz saved successfully to DB");
+            } catch (dbError) {
+                console.error("Database Save Error:", dbError);
+                // We don't block the response if DB save fails, but we log it
+            }
         }
 
         res.json({ quiz: quizData });
     } catch (error) {
         console.error('Quiz generation error:', error);
-        res.status(500).json({ error: 'Failed to generate quiz' });
+        res.status(500).json({ error: 'Failed to generate quiz', details: error.message });
     }
 }
 
@@ -146,10 +224,32 @@ async function quiz(req, res) {
  */
 async function chat(req, res) {
     try {
-        const { message, fileId, conversationHistory = [] } = req.body;
+        const { message, fileId, conversationHistory = [], userId } = req.body;
 
         if (!message) {
             return res.status(400).json({ error: 'Message is required' });
+        }
+
+        // Validate fileId if provided
+        if (fileId) {
+            const fileExists = await prisma.file.findUnique({
+                where: { id: fileId }
+            });
+            if (!fileExists) {
+                return res.status(404).json({ error: 'File not found' });
+            }
+        }
+
+        // Save user message
+        if (userId) {
+            await prisma.message.create({
+                data: {
+                    content: message,
+                    role: 'user',
+                    userId,
+                    fileId
+                }
+            });
         }
 
         let context = "";
@@ -165,17 +265,55 @@ async function chat(req, res) {
         // Assuming conversationHistory comes in as simple objects, we map them.
         // If it's the first message, history is empty.
 
+        const systemInstruction = `You are a helpful and intelligent AI assistant for a notebook application called "CogNote". 
+        Your goal is to help users understand their notes, study effectively, and extract insights.
+        
+        You have access to the user's notes (provided in the context). 
+        
+        **Primary Directive:**
+        1.  **Prioritize the User's Notes:** Always check the provided context from the notes first. If the answer is in the notes, answer based on them.
+        2.  **General Knowledge Fallback:** If the user asks a question that is NOT covered by the notes (e.g., general definitions, facts, or concepts not mentioned in the text), you SHOULD answer using your general knowledge.
+        3.  **Transparency:** When answering from general knowledge, explicitly state: "This information is not in your notes, but generally..." or similar.
+        
+        When asked to "summarize", provide a concise and clear summary of the notes.
+        When asked for a "quiz", generate a short multiple-choice quiz based on the notes.
+        When asked for "flashcards", generate a list of key terms and definitions from the notes.
+        
+        Always be professional, clear, and concise. Use markdown for formatting (lists, bold text, code blocks) to make the response easy to read.`;
+
         const chat = model.startChat({
-            history: conversationHistory.map(msg => ({
-                role: msg.role === 'assistant' ? 'model' : 'user',
-                parts: [{ text: msg.content }]
-            }))
+            history: [
+                {
+                    role: 'user',
+                    parts: [{ text: systemInstruction }]
+                },
+                {
+                    role: 'model',
+                    parts: [{ text: "Understood. I am ready to assist you with your notes." }]
+                },
+                ...conversationHistory.map(msg => ({
+                    role: msg.role === 'assistant' ? 'model' : 'user',
+                    parts: [{ text: msg.content }]
+                }))
+            ]
         });
 
         const prompt = `${context}User question: ${message}`;
         const result = await chat.sendMessage(prompt);
         const response = await result.response;
         const text = response.text();
+
+        // Save assistant response
+        if (userId) {
+            await prisma.message.create({
+                data: {
+                    content: text,
+                    role: 'assistant',
+                    userId,
+                    fileId
+                }
+            });
+        }
 
         res.json({
             role: 'assistant',

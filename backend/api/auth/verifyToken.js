@@ -14,10 +14,14 @@ const jwt = require('jsonwebtoken');
  */
 function verifyToken(req, res, next) {
     try {
+        console.log('[verifyToken] Starting token verification...');
+
         // Get token from Authorization header
         const authHeader = req.headers.authorization;
+        console.log('[verifyToken] Authorization header:', authHeader ? 'Present' : 'Missing');
 
         if (!authHeader) {
+            console.log('[verifyToken] FAILED: No authorization header');
             return res.status(401).json({
                 error: 'No authorization token provided'
             });
@@ -25,6 +29,7 @@ function verifyToken(req, res, next) {
 
         // Check if it's a Bearer token
         if (!authHeader.startsWith('Bearer ')) {
+            console.log('[verifyToken] FAILED: Invalid format, header:', authHeader.substring(0, 20));
             return res.status(401).json({
                 error: 'Invalid authorization format. Use: Bearer <token>'
             });
@@ -32,15 +37,19 @@ function verifyToken(req, res, next) {
 
         // Extract token
         const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+        console.log('[verifyToken] Token extracted, length:', token.length);
 
         if (!token) {
+            console.log('[verifyToken] FAILED: Empty token after extraction');
             return res.status(401).json({
                 error: 'No token provided'
             });
         }
 
         // Verify token
+        console.log('[verifyToken] Verifying token with JWT_SECRET...');
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        console.log('[verifyToken] Token verified successfully for user:', decoded.email);
 
         // Attach user data to request object
         req.user = {
@@ -52,7 +61,7 @@ function verifyToken(req, res, next) {
         next();
 
     } catch (error) {
-        console.error('Token verification error:', error);
+        console.error('[verifyToken] FAILED: Token verification error:', error.name, error.message);
 
         if (error.name === 'JsonWebTokenError') {
             return res.status(401).json({

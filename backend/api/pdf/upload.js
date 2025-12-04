@@ -73,20 +73,28 @@ async function uploadPDF(req, res) {
         const userId = req.user.id;
         const filepath = req.file.path;
         const filename = req.file.originalname;
+        const notebookId = req.body.notebookId || null; // Optional notebook association
 
-        console.log(`Processing PDF: ${filename} for user: ${userId}`);
+        console.log(`Processing PDF: ${filename} for user: ${userId}, notebook: ${notebookId || 'none'}`);
 
         // Extract text from PDF
         const extractedText = await extractTextFromPDF(filepath);
 
         // Save file metadata to database
+        const fileData = {
+            filename,
+            filepath,
+            extractedText,
+            userId
+        };
+
+        // Add notebookId if provided
+        if (notebookId) {
+            fileData.notebookId = notebookId;
+        }
+
         const file = await prisma.file.create({
-            data: {
-                filename,
-                filepath,
-                extractedText,
-                userId
-            }
+            data: fileData
         });
 
         // Create a note with the extracted text
