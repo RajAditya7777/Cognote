@@ -87,28 +87,4 @@ router.delete('/summary/:id', async (req, res) => {
     }
 });
 
-// Delete Quiz Set by setId
-router.delete('/quiz/set/:setId', async (req, res) => {
-    try {
-        const { setId } = req.params;
-        await prisma.quiz.deleteMany({ where: { setId } });
-        res.json({ message: 'Quiz set deleted successfully' });
-    } catch (error) {
-        console.error('Delete quiz set error:', error);
-        res.status(500).json({ error: 'Failed to delete quiz set' });
-    }
-});
-
-// Delete Flashcard Set by setId
-router.delete('/flashcards/set/:setId', async (req, res) => {
-    try {
-        const { setId } = req.params;
-        await prisma.flashcard.deleteMany({ where: { setId } });
-        res.json({ message: 'Flashcard set deleted successfully' });
-    } catch (error) {
-        console.error('Delete flashcard set error:', error);
-        res.status(500).json({ error: 'Failed to delete flashcard set' });
-    }
-});
-
 module.exports = router;

@@ -106,15 +106,14 @@ async function flashcards(req, res) {
 
         // Save to DB
         if (fileId && Array.isArray(flashcardsData)) {
-            // Generate a unique setId for this batch
-            const setId = crypto.randomUUID();
+            // Delete existing flashcards for this file
+            await prisma.flashcard.deleteMany({ where: { fileId } });
 
             await prisma.flashcard.createMany({
                 data: flashcardsData.map(fc => ({
                     front: fc.front,
                     back: fc.back,
-                    fileId,
-                    setId
+                    fileId
                 }))
             });
         }
@@ -200,8 +199,8 @@ async function quiz(req, res) {
         if (fileId && Array.isArray(quizData)) {
             console.log(`[QUIZ] Saving quiz for file ${fileId} with ${quizData.length} questions`);
             try {
-                // Generate a unique setId for this batch
-                const setId = crypto.randomUUID();
+                // Delete existing quizzes for this file
+                await prisma.quiz.deleteMany({ where: { fileId } });
 
                 await prisma.quiz.createMany({
                     data: quizData.map(q => ({
@@ -210,8 +209,7 @@ async function quiz(req, res) {
                         answer: q.answer,
                         explanations: q.explanations || {}, // Save explanations
                         hint: q.hint || "",             // Save hint
-                        fileId,
-                        setId
+                        fileId
                     }))
                 });
                 console.log("[QUIZ] Quiz saved successfully to DB");
