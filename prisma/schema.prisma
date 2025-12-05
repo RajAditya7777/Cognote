@@ -96,6 +96,7 @@ model Summary {
   file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  name      String?
 }
 
 model Flashcard {
@@ -123,6 +124,7 @@ model Quiz {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   setId     String?
+  name      String?
 
   @@index([fileId])
 }
