@@ -50,7 +50,7 @@ export default function ProfilePage() {
         setMessage("");
 
         try {
-            const res = await fetch('${API_URL}/api/user/settings/profile', {
+            const res = await fetch(`${API_URL}/api/user/settings/profile`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

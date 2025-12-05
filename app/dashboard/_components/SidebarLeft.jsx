@@ -24,7 +24,7 @@ export default function SidebarLeft({ files = [], onUploadSuccess, userId, noteb
         if (!token) return;
 
         try {
-            const res = await fetch('${API_URL}/api/pdf/upload', {
+            const res = await fetch(`${API_URL}/api/pdf/upload`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token} `

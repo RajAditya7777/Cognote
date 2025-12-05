@@ -74,7 +74,7 @@ export default function Dashboard() {
         body.notebookId = notebookId;
       }
 
-      const res = await fetch('${API_URL}/api/user/data', {
+      const res = await fetch(`${API_URL}/api/user/data`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -100,7 +100,7 @@ export default function Dashboard() {
           setCurrentNotebook(notebooks[0]);
         } else {
           // Create a default notebook
-          const createRes = await fetch('${API_URL}/api/notebooks', {
+          const createRes = await fetch(`${API_URL}/api/notebooks`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId, title: 'Untitled Notebook' })
@@ -129,7 +129,7 @@ export default function Dashboard() {
       if (sidebarWidth < 400) setSidebarWidth(500);
 
       try {
-        const res = await fetch('${API_URL}/api/ai/quiz', {
+        const res = await fetch(`${API_URL}/api/ai/quiz`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -159,7 +159,7 @@ export default function Dashboard() {
       if (sidebarWidth < 400) setSidebarWidth(500);
 
       try {
-        const res = await fetch('${API_URL}/api/ai/flashcards', {
+        const res = await fetch(`${API_URL}/api/ai/flashcards`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -185,7 +185,7 @@ export default function Dashboard() {
       if (sidebarWidth < 400) setSidebarWidth(500);
 
       try {
-        const res = await fetch('${API_URL}/api/ai/summarize', {
+        const res = await fetch(`${API_URL}/api/ai/summarize`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

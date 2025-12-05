@@ -83,7 +83,7 @@ export default function MainContent({ files = [], selectedFileIds = [], onUpload
         if (!userId) return;
         setIsSavingPrompt(true);
         try {
-            const res = await fetch('${API_URL}/api/user/settings/profile', {
+            const res = await fetch(`${API_URL}/api/user/settings/profile`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -120,7 +120,7 @@ export default function MainContent({ files = [], selectedFileIds = [], onUpload
         }
 
         try {
-            const res = await fetch('${API_URL}/api/pdf/upload', {
+            const res = await fetch(`${API_URL}/api/pdf/upload`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -154,7 +154,7 @@ export default function MainContent({ files = [], selectedFileIds = [], onUpload
             // Use the most recent file as context if available
             const targetFileId = selectedFileIds.length > 0 ? selectedFileIds[0] : (files.length > 0 ? files[0].id : null);
 
-            const res = await fetch('${API_URL}/api/ai/chat', {
+            const res = await fetch(`${API_URL}/api/ai/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

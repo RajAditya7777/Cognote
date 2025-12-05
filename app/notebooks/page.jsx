@@ -42,7 +42,7 @@ export default function NotebooksPage() {
     const handleCreateNotebook = async () => {
         if (!user) return;
         try {
-            const res = await fetch('${API_URL}/api/notebooks', {
+            const res = await fetch(`${API_URL}/api/notebooks`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id, title: 'Untitled Notebook' })
