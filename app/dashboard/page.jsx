@@ -331,6 +331,7 @@ export default function Dashboard() {
             showSummary={showSummary}
             onCloseSummary={() => setShowSummary(false)}
             files={files}
+            selectedFileIds={selectedFileIds}
             onDeleteContent={async (type, id) => {
               try {
                 let endpoint = `${API_URL}/api/delete/${type}/${id}`;

@@ -18,8 +18,9 @@ export default function SidebarRight({
     showSummary,
     onCloseSummary,
     files,
-    onDeleteContent, // Callback to handle deletion
-    userId
+    onDeleteContent,
+    userId,
+    selectedFileIds // Add this prop
 }) {
     const features = [
         { icon: Layers, label: "Flashcards", action: "flashcards" },
@@ -44,8 +45,12 @@ export default function SidebarRight({
         return `${Math.floor(diffInSeconds / 86400)}d ago`;
     };
 
-    // Get the active file - show the most recent file (last in array) so newly uploaded files and their generated content appear
-    const activeFile = files && files.length > 0 ? files[files.length - 1] : null;
+    // Get the active file - prioritize selected file, otherwise show most recent
+    const activeFile = files && files.length > 0
+        ? (selectedFileIds && selectedFileIds.length > 0
+            ? files.find(f => f.id === selectedFileIds[0])
+            : files[0])
+        : null;
 
     return (
         <div className="w-full bg-black flex flex-col h-full shrink-0 relative overflow-hidden">
