@@ -213,13 +213,19 @@ export default function SidebarRight({
                                     ));
                                 })()}
 
+                                {/* Summary */}
                                 {activeFile.summary && (
-                                    <div className="group bg-[#1a1a1a] hover:bg-[#222] transition-colors rounded-xl p-4 flex items-center gap-4 cursor-pointer border border-transparent hover:border-white/5">
+                                    <div
+                                        className="group bg-[#1a1a1a] hover:bg-[#222] transition-colors rounded-xl p-4 flex items-center gap-4 cursor-pointer border border-transparent hover:border-white/5"
+                                        onClick={() => onAction('open_summary')}
+                                    >
                                         <div className="p-2 bg-white/5 rounded-lg">
                                             <FileText className="w-5 h-5 text-white/70" />
                                         </div>
-                                        <div className="flex-1 min-w-0" onClick={() => onAction('open_summary')}>
-                                            <h4 className="text-white font-medium text-sm truncate">{activeFile.summary.name || 'Document Summary'}</h4>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="text-white font-medium text-sm truncate">
+                                                {activeFile.summary.name || 'Generated Summary'}
+                                            </h4>
                                             <div className="flex items-center gap-2 text-white/30 text-xs mt-1">
                                                 <span>1 source</span>
                                                 <span>•</span>
