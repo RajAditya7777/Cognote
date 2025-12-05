@@ -7,7 +7,7 @@
     "scripts": {
         "start": "node server.js",
         "dev": "nodemon server.js",
-        "build": "rm -rf node_modules/.prisma node_modules/@prisma/client && prisma generate && prisma db push --accept-data-loss",
+        "build": "rm -rf node_modules/.prisma node_modules/@prisma/client && prisma generate",
         "postinstall": "prisma generate",
         "prisma:generate": "prisma generate",
         "prisma:push": "prisma db push",
