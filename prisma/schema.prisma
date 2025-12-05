@@ -107,6 +107,7 @@ model Flashcard {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   setId     String?
+  name      String?
 
   @@index([fileId])
 }
