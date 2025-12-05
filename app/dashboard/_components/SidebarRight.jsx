@@ -44,8 +44,8 @@ export default function SidebarRight({
         return `${Math.floor(diffInSeconds / 86400)}d ago`;
     };
 
-    // Get the active file (assuming single file selection for now, or just showing all content for the first file)
-    const activeFile = files && files.length > 0 ? files[0] : null;
+    // Get the active file - show the most recent file (last in array) so newly uploaded files and their generated content appear
+    const activeFile = files && files.length > 0 ? files[files.length - 1] : null;
 
     return (
         <div className="w-full bg-black flex flex-col h-full shrink-0 relative overflow-hidden">
