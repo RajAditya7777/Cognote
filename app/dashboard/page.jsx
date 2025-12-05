@@ -331,17 +331,30 @@ export default function Dashboard() {
             showSummary={showSummary}
             onCloseSummary={() => setShowSummary(false)}
             files={files}
-            onDeleteContent={async (type, fileId) => {
+            onDeleteContent={async (type, id) => {
               try {
-                const res = await fetch(`${API_URL}/api/delete/${type}/${fileId}`, {
+                let endpoint = `${API_URL}/api/delete/${type}/${id}`;
+
+                // Handle bulk delete
+                if (type === 'quiz_all') {
+                  endpoint = `${API_URL}/api/delete/quiz/file/${id}`;
+                } else if (type === 'flashcards_all') {
+                  endpoint = `${API_URL}/api/delete/flashcards/file/${id}`;
+                } else if (type === 'quiz_set') {
+                  endpoint = `${API_URL}/api/delete/quiz/set/${id}`;
+                } else if (type === 'flashcards_set') {
+                  endpoint = `${API_URL}/api/delete/flashcards/set/${id}`;
+                }
+
+                const res = await fetch(endpoint, {
                   method: 'DELETE'
                 });
                 if (res.ok) {
                   // Refresh data
                   if (user) fetchUserData(user.id);
                   // Close panel if open
-                  if (type === 'quiz') setShowQuiz(false);
-                  if (type === 'flashcards') setShowFlashcards(false);
+                  if (type.includes('quiz')) setShowQuiz(false);
+                  if (type.includes('flashcards')) setShowFlashcards(false);
                   if (type === 'summary') setShowSummary(false);
                 }
               } catch (error) {

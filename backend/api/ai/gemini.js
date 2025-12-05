@@ -1,5 +1,6 @@
 const { model } = require('../../lib/gemini');
 const { prisma } = require('../../prismaClient');
+const crypto = require('crypto');
 
 /**
  * Summarize Text Endpoint
@@ -105,14 +106,15 @@ async function flashcards(req, res) {
 
         // Save to DB
         if (fileId && Array.isArray(flashcardsData)) {
-            // Delete old flashcards for this file to avoid duplicates/stale data
-            await prisma.flashcard.deleteMany({ where: { fileId } });
+            // Generate a unique setId for this batch
+            const setId = crypto.randomUUID();
 
             await prisma.flashcard.createMany({
                 data: flashcardsData.map(fc => ({
                     front: fc.front,
                     back: fc.back,
-                    fileId
+                    fileId,
+                    setId
                 }))
             });
         }
@@ -198,7 +200,9 @@ async function quiz(req, res) {
         if (fileId && Array.isArray(quizData)) {
             console.log(`[QUIZ] Saving quiz for file ${fileId} with ${quizData.length} questions`);
             try {
-                await prisma.quiz.deleteMany({ where: { fileId } });
+                // Generate a unique setId for this batch
+                const setId = crypto.randomUUID();
+
                 await prisma.quiz.createMany({
                     data: quizData.map(q => ({
                         question: q.question,
@@ -206,7 +210,8 @@ async function quiz(req, res) {
                         answer: q.answer,
                         explanations: q.explanations || {}, // Save explanations
                         hint: q.hint || "",             // Save hint
-                        fileId
+                        fileId,
+                        setId
                     }))
                 });
                 console.log("[QUIZ] Quiz saved successfully to DB");

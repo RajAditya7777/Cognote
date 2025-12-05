@@ -26,6 +26,8 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   messages  Message[]
+  customPrompt String?
+  username  String?
 }
 
 model Message {
@@ -62,6 +64,8 @@ model File {
   userId        String
   user          User      @relation(fields: [userId], references: [id])
   notes         Note[]
+  notebookId    String?
+  notebook      Notebook? @relation(fields: [notebookId], references: [id])
   summary       Summary?
   flashcards    Flashcard[]
   quiz          Quiz[]
@@ -102,6 +106,7 @@ model Flashcard {
   file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  setId     String?
 
   @@index([fileId])
 }
@@ -111,10 +116,23 @@ model Quiz {
   question  String   @db.Text
   options   String[]
   answer    String   @db.Text
+  explanations Json?  @db.JsonB
+  hint      String?  @db.Text
   fileId    String
   file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  setId     String?
 
   @@index([fileId])
+}
+model Notebook {
+  id        String   @id @default(cuid())
+  title     String
+  userId    String
+  files     File[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }

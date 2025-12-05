@@ -27,6 +27,18 @@ router.delete('/file/:id', async (req, res) => {
     }
 });
 
+// Delete All Quizzes for a File
+router.delete('/quiz/file/:fileId', async (req, res) => {
+    try {
+        const { fileId } = req.params;
+        await prisma.quiz.deleteMany({ where: { fileId } });
+        res.json({ message: 'All quizzes for file deleted successfully' });
+    } catch (error) {
+        console.error('Delete all quizzes error:', error);
+        res.status(500).json({ error: 'Failed to delete quizzes' });
+    }
+});
+
 // Delete Quiz
 router.delete('/quiz/:id', async (req, res) => {
     try {
@@ -39,7 +51,18 @@ router.delete('/quiz/:id', async (req, res) => {
     }
 });
 
-// Delete Flashcards
+// Delete All Flashcards for a File
+router.delete('/flashcards/file/:fileId', async (req, res) => {
+    try {
+        const { fileId } = req.params;
+        await prisma.flashcard.deleteMany({ where: { fileId } });
+        res.json({ message: 'All flashcards for file deleted successfully' });
+    } catch (error) {
+        console.error('Delete all flashcards error:', error);
+        res.status(500).json({ error: 'Failed to delete flashcards' });
+    }
+});
+
 // Delete Flashcards
 router.delete('/flashcards/:id', async (req, res) => {
     try {
@@ -61,6 +84,30 @@ router.delete('/summary/:id', async (req, res) => {
     } catch (error) {
         console.error('Delete summary error:', error);
         res.status(500).json({ error: 'Failed to delete summary' });
+    }
+});
+
+// Delete Quiz Set by setId
+router.delete('/quiz/set/:setId', async (req, res) => {
+    try {
+        const { setId } = req.params;
+        await prisma.quiz.deleteMany({ where: { setId } });
+        res.json({ message: 'Quiz set deleted successfully' });
+    } catch (error) {
+        console.error('Delete quiz set error:', error);
+        res.status(500).json({ error: 'Failed to delete quiz set' });
+    }
+});
+
+// Delete Flashcard Set by setId
+router.delete('/flashcards/set/:setId', async (req, res) => {
+    try {
+        const { setId } = req.params;
+        await prisma.flashcard.deleteMany({ where: { setId } });
+        res.json({ message: 'Flashcard set deleted successfully' });
+    } catch (error) {
+        console.error('Delete flashcard set error:', error);
+        res.status(500).json({ error: 'Failed to delete flashcard set' });
     }
 });
 

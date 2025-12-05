@@ -133,57 +133,85 @@ export default function SidebarRight({
                                 )}
 
                                 {/* Existing Content */}
-                                {activeFile.flashcards?.map((flashcardSet, index) => (
-                                    <div
-                                        key={flashcardSet.id || index}
-                                        className="group bg-[#1a1a1a] hover:bg-[#222] transition-colors rounded-xl p-4 flex items-center gap-4 cursor-pointer border border-transparent hover:border-white/5"
-                                    >
-                                        <div className="p-2 bg-white/5 rounded-lg">
-                                            <Layers className="w-5 h-5 text-white/70" />
-                                        </div>
-                                        <div className="flex-1 min-w-0" onClick={() => onAction('open_flashcards')}>
-                                            <h4 className="text-white font-medium text-sm truncate">{flashcardSet.name || `Generated Flashcards ${index + 1}`}</h4>
-                                            <div className="flex items-center gap-2 text-white/30 text-xs mt-1">
-                                                <span>1 source</span>
-                                                <span>•</span>
-                                                <span>{formatTime(flashcardSet.createdAt)}</span>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); onDeleteContent('flashcards', flashcardSet.id); }}
-                                            className="p-2 hover:bg-white/10 rounded-lg text-white/30 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                                            title="Delete"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                ))}
+                                {/* Group flashcards by setId */}
+                                {activeFile.flashcards && (() => {
+                                    // Group flashcards by setId
+                                    const grouped = {};
+                                    activeFile.flashcards.forEach(fc => {
+                                        const key = fc.setId || 'default';
+                                        if (!grouped[key]) grouped[key] = [];
+                                        grouped[key].push(fc);
+                                    });
 
-                                {activeFile.quiz?.map((quizItem, index) => (
-                                    <div
-                                        key={quizItem.id || index}
-                                        className="group bg-[#1a1a1a] hover:bg-[#222] transition-colors rounded-xl p-4 flex items-center gap-4 cursor-pointer border border-transparent hover:border-white/5"
-                                    >
-                                        <div className="p-2 bg-white/5 rounded-lg">
-                                            <HelpCircle className="w-5 h-5 text-white/70" />
-                                        </div>
-                                        <div className="flex-1 min-w-0" onClick={() => onAction('open_quiz')}>
-                                            <h4 className="text-white font-medium text-sm truncate">{quizItem.name || quizItem.title || `Generated Quiz ${index + 1}`}</h4>
-                                            <div className="flex items-center gap-2 text-white/30 text-xs mt-1">
-                                                <span>1 source</span>
-                                                <span>•</span>
-                                                <span>{formatTime(quizItem.createdAt)}</span>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); onDeleteContent('quiz', quizItem.id); }}
-                                            className="p-2 hover:bg-white/10 rounded-lg text-white/30 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                                            title="Delete"
+                                    return Object.entries(grouped).map(([setId, cards], index) => (
+                                        <div
+                                            key={setId}
+                                            className="group bg-[#1a1a1a] hover:bg-[#222] transition-colors rounded-xl p-4 flex items-center gap-4 cursor-pointer border border-transparent hover:border-white/5"
+                                            onClick={() => onAction('open_flashcards')}
                                         >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                ))}
+                                            <div className="p-2 bg-white/5 rounded-lg">
+                                                <Layers className="w-5 h-5 text-white/70" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="text-white font-medium text-sm truncate">
+                                                    {setId === 'default' ? 'Generated Flashcards' : `Generated Flashcards ${Object.keys(grouped).length > 1 ? index + 1 : ''}`}
+                                                </h4>
+                                                <div className="flex items-center gap-2 text-white/30 text-xs mt-1">
+                                                    <span>{cards.length} cards</span>
+                                                    <span>•</span>
+                                                    <span>{formatTime(cards[0].createdAt)}</span>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); onDeleteContent('flashcards_set', setId); }}
+                                                className="p-2 hover:bg-white/10 rounded-lg text-white/30 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                                title="Delete Flashcard Set"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ));
+                                })()}
+
+                                {/* Group quizzes by setId */}
+                                {activeFile.quiz && (() => {
+                                    // Group quizzes by setId
+                                    const grouped = {};
+                                    activeFile.quiz.forEach(q => {
+                                        const key = q.setId || 'default';
+                                        if (!grouped[key]) grouped[key] = [];
+                                        grouped[key].push(q);
+                                    });
+
+                                    return Object.entries(grouped).map(([setId, questions], index) => (
+                                        <div
+                                            key={setId}
+                                            className="group bg-[#1a1a1a] hover:bg-[#222] transition-colors rounded-xl p-4 flex items-center gap-4 cursor-pointer border border-transparent hover:border-white/5"
+                                            onClick={() => onAction('open_quiz')}
+                                        >
+                                            <div className="p-2 bg-white/5 rounded-lg">
+                                                <HelpCircle className="w-5 h-5 text-white/70" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="text-white font-medium text-sm truncate">
+                                                    {setId === 'default' ? 'Generated Quiz' : `Generated Quiz ${Object.keys(grouped).length > 1 ? index + 1 : ''}`}
+                                                </h4>
+                                                <div className="flex items-center gap-2 text-white/30 text-xs mt-1">
+                                                    <span>{questions.length} questions</span>
+                                                    <span>•</span>
+                                                    <span>{formatTime(questions[0].createdAt)}</span>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); onDeleteContent('quiz_set', setId); }}
+                                                className="p-2 hover:bg-white/10 rounded-lg text-white/30 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                                title="Delete Quiz Set"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ));
+                                })()}
 
                                 {activeFile.summary && (
                                     <div className="group bg-[#1a1a1a] hover:bg-[#222] transition-colors rounded-xl p-4 flex items-center gap-4 cursor-pointer border border-transparent hover:border-white/5">
