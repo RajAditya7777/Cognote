@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from './button';
 import { Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import API_URL from '@/config/api';
 
 const AuthCard = ({ mode = 'login' }) => {
   const router = useRouter();
@@ -39,7 +40,7 @@ const AuthCard = ({ mode = 'login' }) => {
 
     try {
       const endpoint = authMode === 'login' ? 'login' : 'register';
-      const response = await fetch(`http://localhost:4000/api/auth/${endpoint}`, {
+      const response = await fetch(`${API_URL}/api/auth/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

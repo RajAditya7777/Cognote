@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Search, FileText, Clock, Trash2 } from 'lucide-react';
 import { FadeIn } from '@/components/ui/fade-in';
+import API_URL from '@/config/api';
 
 export default function NotebooksPage() {
     const router = useRouter();
@@ -26,7 +27,7 @@ export default function NotebooksPage() {
 
     const fetchNotebooks = async (userId) => {
         try {
-            const res = await fetch(`http://localhost:4000/api/notebooks/${userId}`);
+            const res = await fetch(`${API_URL}/api/notebooks/${userId}`);
             if (res.ok) {
                 const data = await res.json();
                 setNotebooks(data);
@@ -41,7 +42,7 @@ export default function NotebooksPage() {
     const handleCreateNotebook = async () => {
         if (!user) return;
         try {
-            const res = await fetch('http://localhost:4000/api/notebooks', {
+            const res = await fetch('${API_URL}/api/notebooks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id, title: 'Untitled Notebook' })
@@ -62,7 +63,7 @@ export default function NotebooksPage() {
         }
 
         try {
-            const res = await fetch(`http://localhost:4000/api/notebooks/${notebookId}`, {
+            const res = await fetch(`${API_URL}/api/notebooks/${notebookId}`, {
                 method: 'DELETE'
             });
             if (res.ok) {

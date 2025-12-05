@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Loader2, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
+import API_URL from '@/config/api';
 
 export default function SidebarLeft({ files = [], onUploadSuccess, userId, notebookId, selectedFileIds, onToggleFile }) {
     const fileInputRef = useRef(null);
@@ -23,7 +24,7 @@ export default function SidebarLeft({ files = [], onUploadSuccess, userId, noteb
         if (!token) return;
 
         try {
-            const res = await fetch('http://localhost:4000/api/pdf/upload', {
+            const res = await fetch('${API_URL}/api/pdf/upload', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token} `
@@ -50,7 +51,7 @@ export default function SidebarLeft({ files = [], onUploadSuccess, userId, noteb
 
         setDeletingId(fileId);
         try {
-            const res = await fetch(`http://localhost:4000/api/delete/file/${fileId}`, {
+            const res = await fetch(`${API_URL}/api/delete/file/${fileId}`, {
                 method: 'DELETE'
             });
 

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Upload, ArrowRight, SlidersHorizontal, Loader2, Send, User, Bot, X, Save } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
+import API_URL from '@/config/api';
 
 export default function MainContent({ files = [], selectedFileIds = [], onUploadSuccess, userId, notebookId, suggestedAction, onActionComplete }) {
     const fileInputRef = useRef(null);
@@ -45,7 +46,7 @@ export default function MainContent({ files = [], selectedFileIds = [], onUpload
                 // Use selected file if available, otherwise default to first file
                 const targetFileId = selectedFileIds.length > 0 ? selectedFileIds[0] : (files.length > 0 ? files[0].id : null);
 
-                let url = `http://localhost:4000/api/chat/history?userId=${userId}`;
+                let url = `${API_URL}/api/chat/history?userId=${userId}`;
                 if (targetFileId) {
                     url += `&fileId=${targetFileId}`;
                 } else if (notebookId) {
@@ -69,7 +70,7 @@ export default function MainContent({ files = [], selectedFileIds = [], onUpload
     useEffect(() => {
         if (showSettings && userId) {
             // Fetch current custom prompt
-            fetch(`http://localhost:4000/api/user/settings/${userId}`)
+            fetch(`${API_URL}/api/user/settings/${userId}`)
                 .then(res => res.json())
                 .then(data => {
                     setCustomPrompt(data.customPrompt || "");
@@ -82,7 +83,7 @@ export default function MainContent({ files = [], selectedFileIds = [], onUpload
         if (!userId) return;
         setIsSavingPrompt(true);
         try {
-            const res = await fetch('http://localhost:4000/api/user/settings/profile', {
+            const res = await fetch('${API_URL}/api/user/settings/profile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -119,7 +120,7 @@ export default function MainContent({ files = [], selectedFileIds = [], onUpload
         }
 
         try {
-            const res = await fetch('http://localhost:4000/api/pdf/upload', {
+            const res = await fetch('${API_URL}/api/pdf/upload', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -153,7 +154,7 @@ export default function MainContent({ files = [], selectedFileIds = [], onUpload
             // Use the most recent file as context if available
             const targetFileId = selectedFileIds.length > 0 ? selectedFileIds[0] : (files.length > 0 ? files[0].id : null);
 
-            const res = await fetch('http://localhost:4000/api/ai/chat', {
+            const res = await fetch('${API_URL}/api/ai/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

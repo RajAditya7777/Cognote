@@ -1,5 +1,9 @@
 'use client'
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
+import API_URL from '@/config/api';
 import AuthCard from '@/components/ui/auth-card'
 
 export default function AuthPage() {

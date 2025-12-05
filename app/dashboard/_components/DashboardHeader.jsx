@@ -3,6 +3,7 @@ import { Settings, Share2, BarChart2, Plus, LogOut, Search, Bell, User, ChevronL
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import API_URL from '@/config/api';
 
 export default function DashboardHeader({ user, notebook, onNotebookUpdate }) {
     const router = useRouter();
@@ -40,7 +41,7 @@ export default function DashboardHeader({ user, notebook, onNotebookUpdate }) {
         if (notebook?.id) {
             console.log('Saving notebook title:', { id: notebook.id, title: newTitle });
             try {
-                const res = await fetch(`http://localhost:4000/api/notebooks/${notebook.id}`, {
+                const res = await fetch(`${API_URL}/api/notebooks/${notebook.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title: newTitle })

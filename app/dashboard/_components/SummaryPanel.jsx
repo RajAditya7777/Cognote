@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Maximize2, Minimize2, Loader2, Trash2, FileText, X } from 'lucide-react';
+import API_URL from '@/config/api';
 
 export default function SummaryPanel({ summary, isGenerating, onClose }) {
     const [isDeleting, setIsDeleting] = useState(false);
@@ -19,7 +20,7 @@ export default function SummaryPanel({ summary, isGenerating, onClose }) {
                 return;
             }
 
-            const res = await fetch(`http://localhost:4000/api/delete/summary/${fileId}`, {
+            const res = await fetch(`${API_URL}/api/delete/summary/${fileId}`, {
                 method: 'DELETE'
             });
 

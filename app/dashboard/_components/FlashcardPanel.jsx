@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Maximize2, Minimize2, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import API_URL from '@/config/api';
 
 export default function FlashcardPanel({ flashcards, isGenerating, onClose }) {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -44,7 +45,7 @@ export default function FlashcardPanel({ flashcards, isGenerating, onClose }) {
                 return;
             }
 
-            const res = await fetch(`http://localhost:4000/api/delete/flashcards/${fileId}`, {
+            const res = await fetch(`${API_URL}/api/delete/flashcards/${fileId}`, {
                 method: 'DELETE'
             });
 

@@ -6,6 +6,7 @@ import DashboardHeader from './_components/DashboardHeader';
 import SidebarLeft from './_components/SidebarLeft';
 import SidebarRight from './_components/SidebarRight';
 import MainContent from './_components/MainContent';
+import API_URL from '@/config/api';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -73,7 +74,7 @@ export default function Dashboard() {
         body.notebookId = notebookId;
       }
 
-      const res = await fetch('http://localhost:4000/api/user/data', {
+      const res = await fetch('${API_URL}/api/user/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -91,7 +92,7 @@ export default function Dashboard() {
   const fetchOrCreateNotebook = async (userId) => {
     try {
       // Fetch user's notebooks
-      const res = await fetch(`http://localhost:4000/api/notebooks/${userId}`);
+      const res = await fetch(`${API_URL}/api/notebooks/${userId}`);
       if (res.ok) {
         const notebooks = await res.json();
         if (notebooks.length > 0) {
@@ -99,7 +100,7 @@ export default function Dashboard() {
           setCurrentNotebook(notebooks[0]);
         } else {
           // Create a default notebook
-          const createRes = await fetch('http://localhost:4000/api/notebooks', {
+          const createRes = await fetch('${API_URL}/api/notebooks', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId, title: 'Untitled Notebook' })
@@ -128,7 +129,7 @@ export default function Dashboard() {
       if (sidebarWidth < 400) setSidebarWidth(500);
 
       try {
-        const res = await fetch('http://localhost:4000/api/ai/quiz', {
+        const res = await fetch('${API_URL}/api/ai/quiz', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -158,7 +159,7 @@ export default function Dashboard() {
       if (sidebarWidth < 400) setSidebarWidth(500);
 
       try {
-        const res = await fetch('http://localhost:4000/api/ai/flashcards', {
+        const res = await fetch('${API_URL}/api/ai/flashcards', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -184,7 +185,7 @@ export default function Dashboard() {
       if (sidebarWidth < 400) setSidebarWidth(500);
 
       try {
-        const res = await fetch('http://localhost:4000/api/ai/summarize', {
+        const res = await fetch('${API_URL}/api/ai/summarize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -332,7 +333,7 @@ export default function Dashboard() {
             files={files}
             onDeleteContent={async (type, fileId) => {
               try {
-                const res = await fetch(`http://localhost:4000/api/delete/${type}/${fileId}`, {
+                const res = await fetch(`${API_URL}/api/delete/${type}/${fileId}`, {
                   method: 'DELETE'
                 });
                 if (res.ok) {

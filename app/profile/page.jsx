@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, Save, User, Mail, AtSign, Sparkles } from "lucide-react";
 import Link from "next/link";
+import API_URL from '@/config/api';
 
 export default function ProfilePage() {
     const [user, setUser] = useState(null);
@@ -27,7 +28,7 @@ export default function ProfilePage() {
 
     const fetchProfile = async (userId) => {
         try {
-            const res = await fetch(`http://localhost:4000/api/user/settings/${userId}`);
+            const res = await fetch(`${API_URL}/api/user/settings/${userId}`);
             if (res.ok) {
                 const data = await res.json();
                 setFormData({
@@ -49,7 +50,7 @@ export default function ProfilePage() {
         setMessage("");
 
         try {
-            const res = await fetch('http://localhost:4000/api/user/settings/profile', {
+            const res = await fetch('${API_URL}/api/user/settings/profile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

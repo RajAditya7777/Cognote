@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Maximize2, Minimize2, Loader2, Flag, Trash2, X } from 'lucide-react';
+import API_URL from '@/config/api';
 
 export default function QuizPanel({ quiz, isGenerating, onClose }) {
     const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -16,7 +17,7 @@ export default function QuizPanel({ quiz, isGenerating, onClose }) {
 
         setIsDeleting(true);
         try {
-            const res = await fetch(`http://localhost:4000/api/delete/quiz/${quiz.fileId}`, {
+            const res = await fetch(`${API_URL}/api/delete/quiz/${quiz.fileId}`, {
                 method: 'DELETE'
             });
 
