@@ -13,10 +13,16 @@ export default function MainContent({ files = [], selectedFileIds = [], onUpload
     const [isSavingPrompt, setIsSavingPrompt] = useState(false);
     const chatContainerRef = useRef(null);
 
-    // Simple auto-scroll to bottom on new messages
+    // Smart auto-scroll: only scroll to bottom if user is already near the bottom
     useEffect(() => {
         if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+            const container = chatContainerRef.current;
+            const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+
+            // Only auto-scroll if user is already at/near the bottom
+            if (isNearBottom) {
+                container.scrollTop = container.scrollHeight;
+            }
         }
     }, [chatHistory]);
 
@@ -42,6 +48,9 @@ export default function MainContent({ files = [], selectedFileIds = [], onUpload
                 let url = `http://localhost:4000/api/chat/history?userId=${userId}`;
                 if (targetFileId) {
                     url += `&fileId=${targetFileId}`;
+                } else if (notebookId) {
+                    // If no specific file selected, filter by notebook
+                    url += `&notebookId=${notebookId}`;
                 }
                 const res = await fetch(url);
                 if (res.ok) {
@@ -55,7 +64,7 @@ export default function MainContent({ files = [], selectedFileIds = [], onUpload
             }
         };
         fetchHistory();
-    }, [userId, files, selectedFileIds]);
+    }, [userId, files, selectedFileIds, notebookId || null]);
 
     useEffect(() => {
         if (showSettings && userId) {
@@ -178,7 +187,7 @@ export default function MainContent({ files = [], selectedFileIds = [], onUpload
     };
 
     return (
-        <div className="flex-1 flex flex-col bg-black relative border-x border-white/10 overflow-hidden min-h-0 h-full">
+        <div className="flex-1 flex flex-col bg-black relative border-x border-white/10">
             {/* Chat Header */}
             <div className="p-4 flex items-center justify-between border-b border-white/5 shrink-0">
                 <h2 className="text-white/90 font-medium">Chat</h2>
@@ -243,77 +252,82 @@ export default function MainContent({ files = [], selectedFileIds = [], onUpload
                 </div>
             )}
 
-            {/* Center Content */}
-            <div
-                className="flex-1 overflow-y-auto p-6 min-h-0"
-                ref={chatContainerRef}
-                style={{
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: 'rgba(255, 255, 255, 0.2) transparent'
-                }}
-            >
-                {files.length === 0 && chatHistory.length === 0 ? (
-                    <div className="flex-1 flex flex-col items-center justify-center">
-                        <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                            <Upload className="w-8 h-8 text-blue-400" />
-                        </div>
-                        <h1 className="text-3xl text-white/90 font-light mb-4 text-center tracking-tight">Add a source to get started</h1>
-                        <p className="text-white/50 text-center max-w-md mb-8">Upload a PDF to unlock AI-powered insights, summaries, and Q&A.</p>
+            {/* Center Content - Scrollable Area */}
+            <div className="flex-1 relative overflow-hidden">
+                <div
+                    className="absolute inset-0 overflow-y-auto overflow-x-hidden p-6 z-10"
+                    ref={chatContainerRef}
+                    style={{
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: 'rgba(255, 255, 255, 0.2) transparent',
+                        touchAction: 'pan-y',
+                        overscrollBehavior: 'contain',
+                        willChange: 'scroll-position'
+                    }}
+                >
+                    {files.length === 0 && chatHistory.length === 0 ? (
+                        <div className="flex-1 flex flex-col items-center justify-center">
+                            <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                                <Upload className="w-8 h-8 text-blue-400" />
+                            </div>
+                            <h1 className="text-3xl text-white/90 font-light mb-4 text-center tracking-tight">Add a source to get started</h1>
+                            <p className="text-white/50 text-center max-w-md mb-8">Upload a PDF to unlock AI-powered insights, summaries, and Q&A.</p>
 
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            accept=".pdf"
-                            onChange={handleFileSelect}
-                        />
-                        <Button
-                            variant="outline"
-                            className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 rounded-full px-8 py-6 h-auto text-base font-medium transition-all duration-300"
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={uploading}
-                        >
-                            {uploading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Upload className="w-5 h-5 mr-2" />}
-                            {uploading ? 'Uploading...' : 'Upload a source'}
-                        </Button>
-                    </div>
-                ) : (
-                    <div className="flex-1 space-y-8 max-w-3xl mx-auto w-full">
-                        {chatHistory.length === 0 && (
-                            <div className="text-center text-white/50 mt-20">
-                                <Bot className="w-12 h-12 mx-auto mb-4 text-white/20" />
-                                <p className="text-lg font-light">Ask a question about your sources...</p>
-                            </div>
-                        )}
-                        {chatHistory.map((msg, idx) => (
-                            <div key={idx} className={`flex gap-6 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-lg ${msg.role === 'user' ? 'bg-white/10' : 'bg-gradient-to-br from-blue-500 to-purple-600'}`}>
-                                    {msg.role === 'user' ? <User className="w-5 h-5 text-white" /> : <Bot className="w-6 h-6 text-white" />}
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                accept=".pdf"
+                                onChange={handleFileSelect}
+                            />
+                            <Button
+                                variant="outline"
+                                className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 rounded-full px-8 py-6 h-auto text-base font-medium transition-all duration-300"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploading}
+                            >
+                                {uploading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Upload className="w-5 h-5 mr-2" />}
+                                {uploading ? 'Uploading...' : 'Upload a source'}
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="space-y-8 max-w-3xl mx-auto w-full pb-20">
+                            {chatHistory.length === 0 && (
+                                <div className="text-center text-white/50 mt-20">
+                                    <Bot className="w-12 h-12 mx-auto mb-4 text-white/20" />
+                                    <p className="text-lg font-light">Ask a question about your sources...</p>
                                 </div>
-                                <div className={`rounded-2xl p-6 max-w-[85%] shadow-md ${msg.role === 'user' ? 'bg-white/10 text-white' : 'bg-[#1a1a1a] border border-white/5 text-gray-200'}`}>
-                                    <div className="prose prose-invert prose-sm max-w-none leading-relaxed whitespace-pre-wrap font-light">
-                                        {msg.content}
+                            )}
+                            {chatHistory.map((msg, idx) => (
+                                <div key={idx} className={`flex gap-6 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-lg ${msg.role === 'user' ? 'bg-white/10' : 'bg-gradient-to-br from-blue-500 to-purple-600'}`}>
+                                        {msg.role === 'user' ? <User className="w-5 h-5 text-white" /> : <Bot className="w-6 h-6 text-white" />}
+                                    </div>
+                                    <div className={`rounded-2xl p-6 max-w-[85%] shadow-md ${msg.role === 'user' ? 'bg-white/10 text-white' : 'bg-[#1a1a1a] border border-white/5 text-gray-200'}`}>
+                                        <div className="prose prose-invert prose-sm max-w-none leading-relaxed whitespace-pre-wrap font-light">
+                                            {msg.content}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                        {isThinking && (
-                            <div className="flex gap-6 animate-in fade-in duration-300">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shrink-0 shadow-lg">
-                                    <Bot className="w-6 h-6 text-white" />
-                                </div>
-                                <div className="rounded-2xl p-6 bg-[#1a1a1a] border border-white/5 text-gray-200 shadow-md flex items-center gap-3">
-                                    <span className="text-sm font-medium bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Thinking</span>
-                                    <div className="flex gap-1">
-                                        <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                                        <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                                        <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></span>
+                            ))}
+                            {isThinking && (
+                                <div className="flex gap-6 animate-in fade-in duration-300">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shrink-0 shadow-lg">
+                                        <Bot className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div className="rounded-2xl p-6 bg-[#1a1a1a] border border-white/5 text-gray-200 shadow-md flex items-center gap-3">
+                                        <span className="text-sm font-medium bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Thinking</span>
+                                        <div className="flex gap-1">
+                                            <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                            <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                            <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Input Area */}

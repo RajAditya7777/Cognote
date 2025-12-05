@@ -132,6 +132,8 @@ async function quiz(req, res) {
     try {
         const { text, fileId, fileIds, userId, count = 5 } = req.body;
 
+        console.log(`[QUIZ] Requested count: ${count}`); // Debug log
+
         let contentToProcess = text || "";
 
         if (fileIds && fileIds.length > 0) {
@@ -153,7 +155,8 @@ async function quiz(req, res) {
             if (user?.customPrompt) customInstruction = `\n\nUser Custom Instruction: ${user.customPrompt}`;
         }
 
-        const prompt = `Generate a quiz with ${count} multiple-choice questions from the following text. 
+        const prompt = `Generate EXACTLY ${count} multiple-choice questions from the following text. 
+        IMPORTANT: You MUST generate exactly ${count} questions, no more, no less.
         Return a JSON array of objects with the following structure:
         {
             "question": "The question text",
@@ -176,7 +179,7 @@ async function quiz(req, res) {
         const result = await model.generateContent(prompt);
         const response = await result.response;
         let textResponse = response.text();
-        console.log("Raw Gemini Response:", textResponse); // Log raw response for debugging
+        console.log("[QUIZ] Raw Gemini Response:", textResponse); // Log raw response for debugging
 
         textResponse = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
 
@@ -184,14 +187,16 @@ async function quiz(req, res) {
         try {
             quizData = JSON.parse(textResponse);
         } catch (parseError) {
-            console.error("JSON Parse Error:", parseError);
-            console.error("Failed Text:", textResponse);
+            console.error("[QUIZ] JSON Parse Error:", parseError);
+            console.error("[QUIZ] Failed Text:", textResponse);
             // Attempt to recover or return a partial error
             return res.status(500).json({ error: 'Failed to parse AI response', details: parseError.message });
         }
 
+        console.log(`[QUIZ] Generated ${quizData.length} questions (expected ${count})`); // Debug log
+
         if (fileId && Array.isArray(quizData)) {
-            console.log(`Saving quiz for file ${fileId} with ${quizData.length} questions`);
+            console.log(`[QUIZ] Saving quiz for file ${fileId} with ${quizData.length} questions`);
             try {
                 await prisma.quiz.deleteMany({ where: { fileId } });
                 await prisma.quiz.createMany({
@@ -204,19 +209,20 @@ async function quiz(req, res) {
                         fileId
                     }))
                 });
-                console.log("Quiz saved successfully to DB");
+                console.log("[QUIZ] Quiz saved successfully to DB");
             } catch (dbError) {
-                console.error("Database Save Error:", dbError);
+                console.error("[QUIZ] Database Save Error:", dbError);
                 // We don't block the response if DB save fails, but we log it
             }
         }
 
         res.json({ quiz: quizData });
     } catch (error) {
-        console.error('Quiz generation error:', error);
+        console.error('[QUIZ] Quiz generation error:', error);
         res.status(500).json({ error: 'Failed to generate quiz', details: error.message });
     }
 }
+
 
 /**
  * Chat with Notes Endpoint

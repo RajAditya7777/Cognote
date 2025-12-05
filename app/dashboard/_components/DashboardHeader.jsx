@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Settings, Share2, BarChart2, Plus, LogOut, Search, Bell, User } from "lucide-react";
+import { Settings, Share2, BarChart2, Plus, LogOut, Search, Bell, User, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function DashboardHeader({ user, notebook, onNotebookUpdate }) {
     const router = useRouter();
-    const [isCreating, setIsCreating] = useState(false);
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [title, setTitle] = useState(notebook?.title || "Untitled Notebook");
     // Ideally we should get the notebook ID from props or context
@@ -62,30 +61,12 @@ export default function DashboardHeader({ user, notebook, onNotebookUpdate }) {
         }
     };
 
-    const handleCreateNotebook = async () => {
-        if (!user?.id) return;
-        setIsCreating(true);
-        try {
-            const res = await fetch('http://localhost:4000/api/notebooks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.id, title: 'Untitled Notebook' })
-            });
-            if (res.ok) {
-                const notebook = await res.json();
-                // Redirect to the new notebook or just refresh?
-                // For now, let's redirect to the notebooks page or stay here.
-                // Since the user is already on dashboard (which seems to be a single notebook view),
-                // maybe we should redirect to /notebooks to see the list?
-                // Or maybe reload the dashboard with the new notebook context?
-                // Let's redirect to /notebooks for now as it lists them.
-                router.push('/notebooks');
-            }
-        } catch (error) {
-            console.error("Failed to create notebook", error);
-        } finally {
-            setIsCreating(false);
-        }
+    const handleLogout = () => {
+        // Clear user data from localStorage
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        // Redirect to auth page
+        router.push('/auth');
     };
 
     return (
@@ -124,16 +105,20 @@ export default function DashboardHeader({ user, notebook, onNotebookUpdate }) {
             <div className="flex items-center gap-3">
                 <Button
                     variant="outline"
-                    className="bg-white text-black hover:bg-gray-200 rounded-full h-9 px-4 text-sm font-medium border-none"
-                    onClick={handleCreateNotebook}
-                    disabled={isCreating}
+                    className="bg-white/5 text-white hover:bg-white/10 rounded-full h-9 px-4 text-sm font-medium border border-white/20"
+                    onClick={() => router.push('/notebooks')}
                 >
-                    {isCreating ? (
-                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin mr-2" />
-                    ) : (
-                        <Plus className="w-4 h-4 mr-2" />
-                    )}
-                    Create notebook
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    Back to Notebooks
+                </Button>
+
+                <Button
+                    variant="outline"
+                    className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/30 rounded-full h-9 px-4 text-sm font-medium"
+                    onClick={handleLogout}
+                >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
                 </Button>
 
                 <div className="h-6 w-[1px] bg-white/20 mx-1" />

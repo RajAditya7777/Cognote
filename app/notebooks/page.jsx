@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, FileText, Clock } from 'lucide-react';
+import { Plus, Search, FileText, Clock, Trash2 } from 'lucide-react';
 import { FadeIn } from '@/components/ui/fade-in';
 
 export default function NotebooksPage() {
@@ -52,6 +52,24 @@ export default function NotebooksPage() {
             }
         } catch (error) {
             console.error('Failed to create notebook:', error);
+        }
+    };
+
+    const handleDeleteNotebook = async (notebookId, e) => {
+        e.stopPropagation(); // Prevent opening the notebook
+        if (!confirm('Are you sure you want to delete this notebook? All associated files will be unlinked.')) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`http://localhost:4000/api/notebooks/${notebookId}`, {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                setNotebooks(notebooks.filter(n => n.id !== notebookId));
+            }
+        } catch (error) {
+            console.error('Failed to delete notebook:', error);
         }
     };
 
@@ -135,6 +153,13 @@ export default function NotebooksPage() {
                                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
                                         <FileText className="w-5 h-5 text-blue-400" />
                                     </div>
+                                    <button
+                                        onClick={(e) => handleDeleteNotebook(notebook.id, e)}
+                                        className="p-2 hover:bg-red-500/20 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                        title="Delete notebook"
+                                    >
+                                        <Trash2 className="w-4 h-4 text-red-400" />
+                                    </button>
                                 </div>
 
                                 <div>
