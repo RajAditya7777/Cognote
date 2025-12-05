@@ -66,6 +66,10 @@ export default function DashboardHeader({ user, notebook, onNotebookUpdate }) {
         // Clear user data from localStorage
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+
+        // Clear cookie
+        document.cookie = "token=; path=/; max-age=0; SameSite=Strict";
+
         // Redirect to auth page
         router.push('/auth');
     };
