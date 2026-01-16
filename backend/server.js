@@ -16,13 +16,15 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Middleware
+// Middleware
 app.use(cors({
     origin: function (origin, callback) {
         const allowedOrigins = [
             'http://localhost:3000',
             'https://cognote-one.vercel.app',
-            process.env.FRONTEND_URL
-        ].filter(Boolean);
+            'https://cognote-qbph.vercel.app', // Added specific deployment
+            ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : [])
+        ].map(url => url ? url.trim() : null).filter(Boolean);
 
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
@@ -36,6 +38,7 @@ app.use(cors({
         if (isAllowed) {
             callback(null, true);
         } else {
+            console.log(`[CORS] Blocked origin: ${origin}`); // Debug log
             callback(new Error('Not allowed by CORS'));
         }
     },
