@@ -97,14 +97,43 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`\n🚀 CogNote Backend Server is running!`);
-    console.log(`📍 Port: ${PORT}`);
-    console.log(`🌐 Health check: http://localhost:${PORT}/health`);
-    console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth/*`);
-    console.log(`📄 PDF endpoints: http://localhost:${PORT}/api/pdf/*`);
-    console.log(`🤖 AI endpoints: http://localhost:${PORT}/api/ai/*\n`);
-});
+// Start server with graceful port-in-use handling
+function startServer(port, retried = false) {
+    const server = app.listen(port, () => {
+        console.log(`\n🚀 CogNote Backend Server is running!`);
+        console.log(`📍 Port: ${port}`);
+        console.log(`🌐 Health check: http://localhost:${port}/health`);
+        console.log(`🔐 Auth endpoints: http://localhost:${port}/api/auth/*`);
+        console.log(`📄 PDF endpoints: http://localhost:${port}/api/pdf/*`);
+        console.log(`🤖 AI endpoints: http://localhost:${port}/api/ai/*\n`);
+    });
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            if (retried) {
+                console.error(`❌ Port ${port} is still in use after cleanup. Exiting.`);
+                process.exit(1);
+            }
+            console.warn(`⚠️  Port ${port} is in use. Attempting to free it...`);
+            const { execSync } = require('child_process');
+            try {
+                const pid = execSync(`lsof -ti :${port}`, { encoding: 'utf-8' }).trim();
+                if (pid) {
+                    console.log(`   Killing stale process(es): ${pid.replace(/\n/g, ', ')}`);
+                    execSync(`kill -9 ${pid.replace(/\n/g, ' ')}`);
+                }
+            } catch (e) {
+                // lsof may fail if the port freed itself in the meantime — that's fine
+            }
+            console.log(`   Retrying on port ${port}...`);
+            setTimeout(() => startServer(port, true), 1000);
+        } else {
+            console.error('Server error:', err);
+            process.exit(1);
+        }
+    });
+}
+
+startServer(PORT);
 
 module.exports = app;
