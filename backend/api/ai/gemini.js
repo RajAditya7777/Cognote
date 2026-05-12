@@ -1,4 +1,4 @@
-const { model } = require('../../lib/gemini');
+const { model } = require('../../lib/openrouter');
 const { prisma } = require('../../prismaClient');
 const crypto = require('crypto');
 
